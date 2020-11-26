@@ -1,7 +1,6 @@
-# Welcome to your CDK Java project!
+# Welcome to Java CDK project for defining cloud infrastructure in code!
 
-You should explore the contents of this project. It demonstrates a CDK app with an instance of a stack (`CdkWorkshopStack`)
-which contains an Amazon SQS queue that is subscribed to an Amazon SNS topic.
+This project creates a REST endpoint(POST method) using API Gateway. Validates requestbody and integrates it with a lambda function. 
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
