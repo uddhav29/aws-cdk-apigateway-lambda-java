@@ -256,7 +256,7 @@
                           "Ref": "productApiFA7EA763"
                         },
                         "deploymentId": {
-                          "Ref": "productApiDeployment48AF40CBfe335345d2c396356440ed2ad8520157"
+                          "Ref": "productApiDeployment48AF40CB0adebbb592ff683092ffb7db53757e7a"
                         },
                         "stageName": "prod"
                       }
@@ -459,8 +459,21 @@
                         "description": "requestBody",
                         "name": "ProductModel",
                         "schema": {
+                          "properties": {
+                            "productName": {
+                              "type": "string"
+                            },
+                            "productId": {
+                              "type": "string"
+                            },
+                            "price": {
+                              "type": "number"
+                            }
+                          },
                           "required": [
-                            "product"
+                            "productName",
+                            "productId",
+                            "price"
                           ],
                           "$schema": "http://json-schema.org/draft-04/schema#",
                           "title": "product",
@@ -493,7 +506,7 @@
                             }
                           }
                         ],
-                        "value": "AKIAZMOD4A6M3BWJYONR"
+                        "value": ""
                       }
                     }
                   }

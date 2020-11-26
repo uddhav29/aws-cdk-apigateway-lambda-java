@@ -3,8 +3,6 @@ package com.uap.cdk;
 import java.util.Arrays;
 import java.util.Map;
 
-import org.jetbrains.annotations.NotNull;
-
 import software.amazon.awscdk.core.Construct;
 import software.amazon.awscdk.core.Stack;
 import software.amazon.awscdk.core.StackProps;
@@ -12,7 +10,6 @@ import software.amazon.awscdk.services.apigateway.ApiKeyOptions;
 import software.amazon.awscdk.services.apigateway.Deployment;
 import software.amazon.awscdk.services.apigateway.DeploymentProps;
 import software.amazon.awscdk.services.apigateway.IApiKey;
-import software.amazon.awscdk.services.apigateway.IModel;
 import software.amazon.awscdk.services.apigateway.IResource;
 import software.amazon.awscdk.services.apigateway.Integration;
 import software.amazon.awscdk.services.apigateway.JsonSchema;
@@ -38,7 +35,7 @@ import software.amazon.awscdk.services.lambda.Runtime;
 public class CdkStack extends Stack {
 
 	private final String modelName = "ProductModel";
-	private final String apiKey = ""; // add api key here
+	private final String apiKey = ""; // add api key here if kept empty, it'll be auto generated.
 
 	public CdkStack(final Construct parent, final String id) {
 		this(parent, id, null);
@@ -54,35 +51,51 @@ public class CdkStack extends Stack {
 
 		RestApi api = new RestApi(this, "productApi",
 				RestApiProps.builder().restApiName("Product Service").build());
-		
-		Deployment deployment = new Deployment(this, "deploy", DeploymentProps.builder().api(api).build());
-		Stage stage = new Stage(this, "QA", StageProps.builder().stageName("QA"). deployment(deployment).build());
-		api.setDeploymentStage(stage);
-	
-		IResource items = api.getRoot().addResource("product");
 
+		Deployment deployment = new Deployment(this, "deploy", DeploymentProps.builder().api(api).build());
+
+		Stage stage = new Stage(this, "QA", 
+				StageProps.builder().
+				stageName("QA").deployment(deployment)
+				.build());
+
+
+		api.setDeploymentStage(stage);
+
+		IResource items = api.getRoot().addResource("product");
+		
+		
+		Map<String, JsonSchema> fields = Map.of("productName", JsonSchema.builder().type(JsonSchemaType.STRING).build(),
+				"productId", JsonSchema.builder().type(JsonSchemaType.STRING).build(),
+				"price", JsonSchema.builder().type(JsonSchemaType.NUMBER).build()
+				); 
+		
 		ModelOptions model = ModelOptions.builder().contentType("application/json").
 				description("requestBody"). modelName(modelName).schema(
 						JsonSchema.builder().schema(JsonSchemaVersion.DRAFT4).
 						title("product").
-						//properties(properties)
+						properties(fields).
 						type(JsonSchemaType.OBJECT).
-						required(Arrays.asList("product")).
+						required(Arrays.asList("productName","productId","price")).
 						build()).build();
 
 		api.addModel(modelName, model);
 
 		IApiKey key = api.addApiKey("apiKey", ApiKeyOptions.builder().apiKeyName("apiKey").value(apiKey).build());
-		api.addUsagePlan("usagePlan", UsagePlanProps.builder().apiStages(Arrays.asList(UsagePlanPerApiStage.builder().stage(stage).build())).apiKey(key).quota(QuotaSettings.builder().limit(20).period(Period.WEEK).build()).throttle(ThrottleSettings.builder().burstLimit(5).rateLimit(5).build()).build());
+		
+		api.addUsagePlan("usagePlan", UsagePlanProps.builder().
+				apiStages(Arrays.asList(UsagePlanPerApiStage.builder().
+						stage(stage).build())).
+				apiKey(key).quota(QuotaSettings.builder().
+						limit(20).period(Period.WEEK).build())
+				.throttle(ThrottleSettings.builder()
+						.burstLimit(5).rateLimit(5).build()).build());
+
 		Integration integration = new LambdaIntegration(function);
-		MethodOptions options = MethodOptions.builder().requestModels(Map.of("application/json", new IModel() {
-
-			@Override
-			public @NotNull String getModelId() {
-				return modelName;
-			}
-
-		})).apiKeyRequired(true).requestValidatorOptions(RequestValidatorOptions.builder().requestValidatorName("payload validator").validateRequestBody(true).build()).build();
+		MethodOptions options = MethodOptions.builder().requestModels(Map.of("application/json", () -> modelName)).
+				apiKeyRequired(true).
+				requestValidatorOptions(RequestValidatorOptions.builder().requestValidatorName("payload validator").validateRequestBody(true).build()).
+				build();
 
 		items.addMethod("POST", integration, options );
 	}
