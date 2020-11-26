@@ -1,6 +1,9 @@
 # Welcome to Java CDK project for defining cloud infrastructure in code!
 
-This project creates a REST endpoint(POST method) using API Gateway. Validates requestbody and integrates it with a lambda function. 
+This project creates a REST endpoint(POST method) using API Gateway. Validates Requestbody and integrates it with a lambda function. 
+
+ * `event.py`    	  Lambda function code
+ * `CdkStack.java`    Java code for creating AWS resources(Lambda function, API Gateway REST endpoint)
 
 The `cdk.json` file tells the CDK Toolkit how to execute your app.
 
